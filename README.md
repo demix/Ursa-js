@@ -34,7 +34,7 @@ Ursa-js
 
     or - a or b - a || b
 
-    \+
+    +
 
     -
 
