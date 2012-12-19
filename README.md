@@ -78,6 +78,8 @@ Ursa-js
 
     default - vars|default('vars is not defined') - 给vars指定一个默认值
 
+    escape - var|escape[('js' or 'none')] - 对vars进行转义，默认会对所有输出进行转义，转义类型也可以开发扩展函数
+
 
 
 
