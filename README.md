@@ -1,4 +1,85 @@
 Ursa-js
 =======
 
-为Ursa服务的javascript模板，不依赖任何框架，可运行在浏览器端和node环境
+为Ursa服务的javascript模板,语法是Jinja(python,php),twig(php)的子集，不依赖任何框架，可运行在浏览器端和node环境
+
+###1，语法特征
+
+    Jinja和twig的子集
+
+    {%%} - 语句
+
+    {{}} - 输出
+
+    {##} - 注释
+
+
+###2，支持的tag
+
+    {%if elif else endif%} 条件判断
+
+    {%for key,value in else endfor%} 循环
+
+    {%set var = exper%} 声明一个变量
+
+###3，支持的操作符
+
+    in - a in b - a是否在数组或者字符串b内 
+
+    is - a is b - a是否b指定的类型，除语法自带类型之外，还可以开发扩展类型判断函数
+
+    not - not a | a is not b - 非
+
+    and - a and b - a && b
+
+    or - a or b - a || b
+
+    \+
+
+    -
+
+    *
+
+    /
+
+    >
+
+    <
+
+    =
+
+    >=
+
+    <=
+
+    ==
+
+###4，支持的函数
+
+    range - range(start, end, size) - 返回一个数组，start开始，以size递增，不包含end
+
+    each  - each(vars, function(value, key, index0) {}) - 在模板内可以引用的循环,index0是循环次数
+
+###5，自带过滤器，可以开发扩展过滤器
+
+    slice - vars|slice(start, length) - 返回数组vars的子集
+
+    sort - array|sort - 对数组升序排序
+
+    join - array|join('-') - 链接数组
+
+    length - vars|length - 返回vars的length
+
+    replace - str|replace(obj) - 用obj内的value替换出现在str内的key
+
+    format - str|format(v1,v2,v3...) - 用出现的参数，逐次替换出现在str内的"%s"
+
+    abs - num|abs - 返回num的绝对值
+
+    default - vars|default('vars is not defined') - 给vars指定一个默认值
+
+
+
+
+
+
