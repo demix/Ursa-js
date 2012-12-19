@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ursa Template Test</title>  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="vendor/qunit.css" type="text/css" media="screen">
+    <script src="Ursa.js"></script>
+</head>
+<body>
+    <h1 class="qunit-header">Ursa Template Test</h1>
+    <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+
+1,tag tests
+    {#
+        这是个注释
+        {%if 1%}
+            this is a test
+        {%else%}
+            test start here
+        {%endif%}
+    #}
+    注意事项
+        1,html内的 \{\{ \{\# \{\%  \}\} \%\} \#\}需要进行转义 \{\{，否则会报错
+        2,is not操作，后面更的参数，函数，内部不能包含空格，否则会报错
+        3,开发function和filter指南 window._callName = function(vars, xxxx) {},调用的时候直接 vars|callName(xxx)
+        4,给is 添加类型判断函数
+        Ursa.varType = Ursa.varType || {};
+        Ursa.varType['hot'] = function(vars) {
+            return vars > 10;
+        }
+        call as : 20 is hot
+        5.给escape增加转义类型
+        Ursa.escapeType = Ursa.escapeType || {};
+        Ursa.escapeType['number'] = function(str) {
+            return str ? str.replace(/[^0-9\.]/g, '') : 0;
+        }
+        call as: escape('number')
+        
+    {%if user is defined%}
+        user is defined
+    {%elif users is not defined%}
+        users is not defined
+    {%else%}
+        user is not defined and users is defined
+    {%endif%}   
+    {%if names is defined%}
+        <ul>
+            <li>
+                this is a name list
+            </li>
+        {%for key,name in names%}
+            <li>
+                {{loop.first?'this is the first' : (loop.last ? "this is the last":"")}}
+                my name is {{name|default('skipper|admin')}} - {{loop.index0}} - {{loop.index}} - in {{loop.length}} names
+            </li>
+        {%else%}
+            <li>
+                there is no any names
+            </li>
+        {%endfor%}
+        </ul>
+    {%else%}
+        names is not defined
+        {%for item in range(0,10)%}
+            <p>item - loop.length is {{loop.length}}</p>
+        {%endfor%}
+    {%endif%}
+
+2,tests
+    1 and 2 is {{1 and 2}}
+    1 or 2 is {{1 or 2}}
+    not 0 is {{not 0}}
+    1 + 2 * 18 / 3 - 6 * (2 + 3 * (5 - 2)) is {{1 + 2 * 18 / 3 - 6 * (2 + 3 * (5 - 2))}}
+    1 in range(1, 100) is {{1 in range(1,100)}}
+    "a" in "abcd" is {{"a" in "abcd"}}
+    "a" in ["a","b","c","d"] is {{"a" in ["a","b","c","d"]}}
+    1 in [1,2,3,4] is {{1 in [1,2,3,4]}}
+    1 is even is {{1 is even}}
+    1 is odd  is {{1 is odd}}
+    2 is even is {{2 is even}}
+    2 is not odd  is {{2 is odd}}
+    1 is not even is {{1 is not even}}
+    1 is not odd  is {{1 is not odd}}
+    2 is not even is {{2 is not even}}
+    2 is not odd  is {{2 is not odd}}
+    19872 is divisibleby(2)  is {{19872 is divisibleby(2)}}
+    19872 is not divisibleby(3)  is {{19872 is not divisibleby(3)}}
+    19872 is divisibleby(3)  is {{19872 is divisibleby(3)}}
+    19871 is not divisibleby(3)  is {{19872 is not divisibleby(3)}}
+    23 >= 22 is {{23 >= 22}}
+    22 <= 23 is {{22 <= 23}}
+    1 == true is {{1 == true}}
+
+3.functions - function参数不能包含空格
+    range(0,10) is {{range(0,10)}}
+    range(0,10,2) is {{range(0,10,2)}}
+    range(10,0) is {{range(10,0)}}
+    range(10,0)|sort is {{range(10,0)|sort}}
+    range(10,0)|join('-') is {{range(10,0)|join('@- -@')}}
+    range(10,0)|slice(2,3) is {{range(10,0)|slice(2,2)}}
+    "hello, Mr %s, my name is %s"|format('Smith','Skipper') is {{"hello, Mr %s, my name is %s"|format('Smith','Skipper')}}
+    range(0,10)|join('-') + "range" + range(20,10)|sort|join('-') is {{range(0,10)|join('-') + "range" + range(20,10)|sort|join('-')}}
+    "hello, Mr %he%, my name is %me%. I'm %age% years old."|replace({'%he%':'Smith','%me%':'Skipper'}) is {{"hello, Mr %he%, my name is %me%. I'm %age% years old."|replace({'%he%':'Smith','%me%':'Skipper','%age%':24})}}
+    -23|abs is {{-23|abs}}
+    __undefinded|default("__undefinded | is undefined") is {{undefinded|default("__undefinded | is undefined")}}
+    range(1,20,3)|length is {{range(1,20,3)|length}}
+    "not user not user " + not 0 is {{"not user is not user " + not 0}}
+    20 is hot is {{20 is hot}}
+    20 is hot and 19 is not hot is {{20 is hot and 9 is not hot}}
+    </textarea>
+    <div id="res"></div>
+    <script src="test.js"></script>
+    <script type="text/html" id="template">
+    <%
+    // a comment
+    if (data) { data += 12345; }; %>
+    <li><%= data %></li>
+    </script>
+    <script>
+        // only compile
+        var test = Ursa.compile(document.getElementById('t2').value, 'test');
+        
+        // re compile and render
+        var test2 = Ursa.render('test2',{names:[1,2,3]},document.getElementById('t2').value);
+        document.getElementById('res').innerHTML = ('<pre>' + test2 + '</pre>');
+    </script>
+</body>
+</html>
