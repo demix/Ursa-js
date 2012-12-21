@@ -3,6 +3,16 @@ Ursa-js
 
 为Ursa服务的javascript模板,语法是Jinja(python,php),twig(php)的子集，不依赖任何框架，可运行在浏览器端和node环境
 
+不足和bug:
+    1，is 和 in 语法的支持不够用，存在一些语法上的限制和bug，由于js本身对is 和 in 并不支持或者支持的不好，因此在使用这两个operator时必须简单，并且符合某种规范，如下：
+
+    a is funcType ? "yes" : "no" - 三元运算，funcType后面一定要跟一个空格，作为funcType的结束表示符，另外funcType内不能包含空格，以上要求同样适用于in
+    
+    2，输出语句对过滤器的支持不够，限制了一个输出语句内只能对一个参数或者语句执行filter操作，例如：
+
+    range|sort|slice(0,2)|join('-') + otherStatment 要求最后一个filter操作后面需用一个空格和其他语句隔开，并且其他语句是不能再适用filter操作，及
+    range|sort + other|join('-') 将会导致错误的解析
+
 ###1，语法特征
 
     Jinja和twig的子集
