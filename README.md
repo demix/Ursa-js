@@ -71,7 +71,7 @@ Ursa-js
 
     each  - each(vars, function(value, key, index0) {}) - 在模板内可以引用的循环,index0是循环次数
 
-###5，自带过滤器，可以开发扩展过滤器
+###5，自带过滤器，可以开发扩展过滤器，默认会对所有输出escape('html')操作,可以escape('none')取消默认转义
 
     slice - vars|slice(start, length) - 返回数组vars的子集
 
