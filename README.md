@@ -11,7 +11,7 @@ Ursa-js
     
 2，输出语句对过滤器的支持不够，限制了一个输出语句内只能对一个参数或者语句执行filter操作，例如：
 
-   range|sort|slice(0,2)|join('-') + otherStatment 要求最后一个filter操作后面需用一个空格和其他语句隔开，并且其他语句是不能再适用filter操作，及
+   range|sort|slice(0,2)|join('-') + otherStatment 要求最后一个filter操作后面需用一个空格和其他语句隔开，并且其他语句是不能再适用filter操作，例如：
    range|sort + other|join('-') 将会导致错误的解析
 
 ###1，语法特征
