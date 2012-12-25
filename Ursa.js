@@ -672,4 +672,12 @@ if (__ssjs__) {
     };
 })();
 
-if (__ssjs__)exports.Ursa = Ursa;
+if(__ssjs__) {
+    exports.Ursa = Ursa;
+} else {
+    if(window['define']){
+        define(function(){
+            return Ursa;
+        });
+    }
+}
