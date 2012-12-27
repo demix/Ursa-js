@@ -519,7 +519,7 @@ if (__ssjs__) {
             }
         }
         str = redoGetStrings(str, tmp[1]);
-        if(str.match(/escape[^,]+,[\'"]+none[\'\"]+[^)]*\)/g)) escapeDefault = 0;
+        if(str.match(/,[\'"]+none[\'\"]+[^)]*\)/g)) escapeDefault = 0;
         //if(escapeDefault) return '__output.push(_escape(' + str.replace(/___zhuanyi___/g, '|') + '));';
         //return '__output.push(' + str.replace(/___zhuanyi___/g, '|') + ');';
         if(escapeDefault) return '__output.push(_escape(' + str + '));';
@@ -639,7 +639,8 @@ if (__ssjs__) {
                             }
                             result += merge(tagsReplacer[matches], {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
                         } else {
-                            dumpError('不存在的标签:' + source.split(' ')[0] + ',行数:' + getLineNumber(tplString, pointer), 'tpl');
+                            //dumpError('不存在的标签:' + source.split(' ')[0] + ',行数:' + getLineNumber(tplString, pointer), 'tpl');
+                            result += compileOperator(source) + ';';
                         }
                     }
                     stack = [];

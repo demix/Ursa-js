@@ -9,6 +9,12 @@
 <body>
     <h1 class="qunit-header">Ursa Template Test</h1>
     <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+{%set a = []%}
+{%a[0]=1%}
+{%a[1]=1%}
+{{a|join('-')}}
+    </textarea>
+    <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
 
 1,tag tests
     {#
