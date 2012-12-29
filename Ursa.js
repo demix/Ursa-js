@@ -640,6 +640,7 @@ if (__ssjs__) {
                             result += merge(tagsReplacer[matches], {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
                         } else {
                             //dumpError('不存在的标签:' + source.split(' ')[0] + ',行数:' + getLineNumber(tplString, pointer), 'tpl');
+                            // 将该语法当成普通的语句操作
                             result += compileOperator(source) + ';';
                         }
                     }
