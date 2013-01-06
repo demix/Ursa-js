@@ -58,9 +58,21 @@ if (__ssjs__) {
     /**
      * @method dumpError
      */
-    function dumpError(msg, type) {
+    function dumpError(code, tplString, pointer, matches) {
+        var msg;
+        switch(code) {
+            case 1:  msg = '错误的使用了\\，行数:' + getLineNumber(tplString, pointer);break;
+            case 2:  msg = '缺少结束符}"，行数:' + getLineNumber(tplString, pointer);break;
+            case 3:  msg = '缺少"{","#"或者"%"，行数:' + getLineNumber(tplString, pointer);break;
+            case 4:  msg = '未闭合的{，,行数:' + getLineNumber(tplString, pointer);break;
+            case 5:  msg = '以下标签未闭合' + matches.join(',');break;
+            case 6:  msg = '创建模板失败' + tplString;break;
+            case 7:  msg = '缺少"' + matches.replace('end', '') + ',行数:' + getLineNumber(tplString, pointer);break;
+            case 8: msg = '缺少结束符}' + tplString;break;
+            default: msg = '出错了';break;
+        }
         throw new Error(msg);
-    }
+    };
     var __undefinded;
     /**
      *
@@ -131,15 +143,6 @@ if (__ssjs__) {
         }
     };
     
-    // filter
-    var fdict = {
-        'trim' : _trim,
-        'escape': _escape
-    };
-    function trim() {
-        return this.replace(/(^\s*)|(\s*$)/g, "");
-    };
-    
     function _trim(str) {
         return str ? (str + '').replace(/(^\s*)|(\s*$)/g, "") : '';
     };
@@ -199,11 +202,12 @@ if (__ssjs__) {
     
     function _escape(str, type) {
         if(!str) return '';
+        if(str.safe == 1) return str.str;
         var str = str.toString();
         // js
         if(type == 'js') return str.replace(/\'/g, '\\\'').replace(/\"/g, '\\"');
         // none
-        if(type == 'none') return str;
+        if(type == 'none') return {str:str, safe: 1};
         
         if(Ursa.escapeType && Ursa.escapeType[type]) return Ursa.escapeType[type](str);
         // default is html
@@ -213,17 +217,7 @@ if (__ssjs__) {
         })
     };
     // filter and function area end
-
-
-    // config
-    Ursa.config = {
-       'statementpfix': '{%', 
-       'statementsfix': '%}', 
-       'outputpfix'   : '{{', 
-       'outputsfix'   : '}}', 
-       'commentpfix'  : '{#',
-       'commentsfix'  : '#}'
-    };
+    
     // cache tpl function
     Ursa._tpl = {};
     /**
@@ -252,7 +246,7 @@ if (__ssjs__) {
         try{
             eval('Ursa._tpl["' + tplName + '"] = ' + str);
         } catch(e) {
-            dumpError('创建模板失败' + e, 'tpl');
+            dumpError(6, e);
         }
         return Ursa._tpl[tplName];
     };
@@ -393,46 +387,6 @@ if (__ssjs__) {
         }
         return str;
     };
-    function getStrings(opstatement) {
-        // 处理字符串常量，字符串常量内包含 in，is not and or可能会影响后面的编译替换，但是又不能转义
-        var p = 0
-            , opstatement = opstatement
-            // 字符串开始的位置
-            , start
-            // 字符串开始的符号， " or '
-            , begin
-            , strs = new String(opstatement).split('')
-            // 将字符串常量，转存
-            , bark = {}
-            , randomNum = Math.random() * 100 >> 0;
-        while(strs[p]) {
-            // 转义，跳两位
-            if(strs[p] == '\\') {
-                p = p + 2;
-                continue;
-            } else if(strs[p].match(/[\'"]/)) {
-                // 结束
-                if(begin) {
-                    if(begin == strs[p]) {
-                        var __key = '_@_p' + p + randomNum + '_@_';
-                        bark[__key] = strs.slice(start, p + 1).join('');
-                        opstatement = opstatement.replace(bark[__key], __key);
-                        begin = false;
-                        start = false;
-                    }
-                // 开始
-                } else {
-                    begin = strs[p];
-                    start = p;
-                }
-            }
-            p++;
-        }
-        return [
-            opstatement,
-            bark
-        ]
-    };
     function redoGetStrings(str, bark) {
         each(bark, function(value, key) {
             str = str.replace(new RegExp(key, 'g'), value);
@@ -440,17 +394,7 @@ if (__ssjs__) {
         return str;
     };
     
-    function compileOperator(opstatement, noNeedGetString) {
-        // 就一个字符串常量
-        if(opstatement.replace(/\\[\S]{1}/g, '').match(/(^\'[^\']+\'$)|(^\"[^\"]+\"$)/g)) {
-            return opstatement;
-        }
-        
-        if(!noNeedGetString) {
-            var tmp = getStrings(opstatement)
-                , opstatement = tmp[0];
-        }
-        
+    function compileOperator(opstatement) {
         // 需要特别处理的操作符
         
         var reg = new RegExp('(^(not)|[\\s]+(and|or|not))[\\s]+', 'g')
@@ -491,20 +435,11 @@ if (__ssjs__) {
             if(m == 'and') return '&&';
             if(m == 'or') return '||';
         });
-        if(!noNeedGetString) {
-            opstatement = redoGetStrings(opstatement, tmp[1]);
-        }
         return opstatement;
     };
     function output(source) {
-        //source = source.replace(/\\\|/g, '___zhuanyi___');
-        // 对字符串常量进行转义
-        var tmp = getStrings(source)
-            , source = tmp[0];
         source = source.split('|');
-        // 待输出变量，因为已经对字符串常量做了一次替换，因此不需要再做替换
-        var str = compileOperator(source[0], 'noNeedGetString')
-            , escapeDefault = 1;
+        var str = compileOperator(source[0]);
         for(var i = 1, len = source.length; i< len; i ++) {
             var func = '_' + _trim(source[i]);
             var fs = func.split('(');
@@ -518,17 +453,20 @@ if (__ssjs__) {
                 str = fname + '(' + str + ((!fs || fs == ')')  ? ')' : ',' + fs);
             }
         }
-        str = redoGetStrings(str, tmp[1]);
-        if(str.match(/,[\'"]+none[\'\"]+[^)]*\)/g)) escapeDefault = 0;
-        //if(escapeDefault) return '__output.push(_escape(' + str.replace(/___zhuanyi___/g, '|') + '));';
-        //return '__output.push(' + str.replace(/___zhuanyi___/g, '|') + ');';
-        if(escapeDefault) return '__output.push(_escape(' + str + '));';
-        return '__output.push(' + str + ');';
+        return '__output.push(_escape(' + str + '));';
     };
     // get error line number
     function getLineNumber(tplString, pointer) {
         return tplString ? (tplString.substr(0,pointer + 1).match(/\n/g) || []).length + 1 : 0; 
     }
+    function setKeyV(obj, value) {
+        var k = Math.random() * 100000 >> 0;
+        while(!obj['__@begin@__' + k + '__@end@__']) {
+            k ++;
+            obj['__@begin@__' + k + '__@end@__'] = value;
+        }
+        return '__@begin@__' + k + '__@end@__';
+    };
     /**
      * 解析器
      *
@@ -546,7 +484,8 @@ if (__ssjs__) {
             , tagStack = []
             , tagStackPointer = []
             // 3 注释语法， 1 语句语法， 2 非语法，4输出语法
-            , isStatementInStack = false;
+            , isStatementInStack = false
+            , strDic = {};
 
         
         while(pointer < body.length) {
@@ -562,12 +501,33 @@ if (__ssjs__) {
                     continue;
                 }
             }
+            // 检测字符串常量，并转义?
+            if(isStatementInStack % 3 == 1 && (body[pointer] == '\'' || body[pointer] == '"')) {
+                var start = body[pointer];
+                var tmpStr = '';
+                //stack.push(start);
+                tmpStr += start;
+                pointer ++;
+                while((typeof body[pointer] != 'undefined') && (body[pointer] != start)) {
+                    if(body[pointer] == '\\') {
+                        //stack.push('\\');
+                        tmpStr += '\\';
+                        pointer ++;
+                    }
+                    tmpStr += body[pointer] || '';
+                    pointer ++;
+                    //stack.push(body[pointer] || '');
+                }
+                //stack.push(start);
+                tmpStr += start;
+                stack.push(setKeyV(strDic, tmpStr));
+                var a;
             // 碰到转义符，指针向后移多移动一位，将\后的字符push到站内
-            if(body[pointer] == '\\') {
+            } else if(body[pointer] == '\\') {
                 pointer++; 
-                if(typeof body[pointer] == undefined) dumpError('错误的使用了\\，行数:' + getLineNumber(tplString, pointer), 'tpl');
-                // 语法内保留转义符
-                if(isStatementInStack != 2)stack.push('\\');
+                if(typeof body[pointer] == undefined) dumpError(1, tplString, pointer);
+                if(body[pointer] != '{') stack.push('\\');
+                if(body[pointer] == '\\') stack.push('\\');
                 stack.push(body[pointer]);
             } else if((body[pointer] == '{') && (typeof body[pointer + 1] != 'undefined') && (body[pointer + 1].match(/[\{%#]/))) {
                 // 非语法在堆栈内
@@ -577,7 +537,7 @@ if (__ssjs__) {
                     stack = [];
                 // 语法在堆栈内，结束前检测到开始，抛出错误
                 } else if(isStatementInStack) {
-                    dumpError('缺少结束符}"，行数:' + getLineNumber(tplString, pointer), 'tpl');
+                    dumpError(2, tplString, pointer);
                 }
                 // 碰到括号向后多移一位
                 pointer++;
@@ -586,26 +546,14 @@ if (__ssjs__) {
                         case '{':isStatementInStack = 4;break;
                         case '#':isStatementInStack = 3;break;
                         case '%':isStatementInStack = 1;break;
-                        default:dumpError('缺少"{","#"或者"%"，行数:' + getLineNumber(tplString, pointer), 'tpl');
+                        default:dumpError(3, tplString, pointer);
                     }
                 }
-                /*
-                // 未转义的{，如果后面没有发现 #, % {，抛出错误
-                if(typeof body[pointer] != undefined) {
-                    switch(body[pointer]) {
-                        case '{':isStatementInStack = 4;break;
-                        case '#':isStatementInStack = 3;break;
-                        case '%':isStatementInStack = 1;break;
-                        default:dumpError('缺少"{","#"或者"%"，行数:' + getLineNumber(tplString, pointer), 'tpl');
-                    }
-                } else {
-                    dumpError('缺少"{","#"或者"%"，行数:' + getLineNumber(tplString, pointer), 'tpl');
-                }
-                */
-                pointer++;
-                if(typeof body[pointer] == undefined) dumpError('未闭合的{，,行数:' + getLineNumber(tplString, pointer), 'tpl');
+                // 去掉未闭合检测，以支持字符串常量检测
+                //pointer++;
+                //if(typeof body[pointer] == undefined) dumpError(4, tplString, pointer);
                 // 非注释语句进堆栈
-                if(isStatementInStack != 3) stack.push(body[pointer]);
+                //if(isStatementInStack != 3) stack.push(body[pointer]);
             } else if(typeof body[pointer] != 'undefined' && body[pointer].match(/[\}%]/g)){
                 // 语法结束标记
                 if((isStatementInStack != 2) && (typeof body[pointer + 1] != 'undefined') && (body[pointer + 1] == '}')) {
@@ -627,7 +575,7 @@ if (__ssjs__) {
                             // 结束标签，出栈
                             if(matches.indexOf('end') == 0) {
                                 // 没有开始标签，就出现结束标签
-                                if(!start) dumpError('缺少"' + matches.replace('end', '') + ',行数:' + getLineNumber(tplString, pointer), 'tpl');
+                                if(!start) dumpError(7, tplString, pointer, matches);
                                 // 主要为for服务，检查是否存在forelse
                                 flag = tagStack.splice(start.p, tagStack.length - start.p).length > 1;
                                 tagStackPointer.splice(tagStackPointer.length - 1, 1);
@@ -639,8 +587,6 @@ if (__ssjs__) {
                             }
                             result += merge(tagsReplacer[matches], {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
                         } else {
-                            //dumpError('不存在的标签:' + source.split(' ')[0] + ',行数:' + getLineNumber(tplString, pointer), 'tpl');
-                            // 将该语法当成普通的语句操作
                             result += compileOperator(source) + ';';
                         }
                     }
@@ -662,15 +608,19 @@ if (__ssjs__) {
         }
         // 非语法一开始是由语法开始标记触发，编译最后需要检测一下stack内是否有遗留内容
         if(stack.length) {
-            result += '__output.push("' + _escape(stack.join(''), 'js') + '");'; 
-            stack = [];
+            if(isStatementInStack == 2) {
+                result += '__output.push("' + _escape(stack.join(''), 'js') + '");'; 
+                stack = null;
+            // 如果仍是语法标志，stack不为空，表示肯定缺少结束标记
+            } else {
+                dumpError(8, stack.join(''));
+            }
         } 
         result += '};return __output.join("");}';
         // 标签未闭合，可以加个自动修复，哈哈
-        if(tagStack.length) dumpError('以下标签未闭合' + tagStack.join(','), 'tpl');
-        // 移除换行符
-        //console.log(result.replace(/\n/g, '\\n'));
-        return result.replace(/\n/g, '\\n');
+        if(tagStack.length) dumpError(5, tplString, pointer, tagStack);
+        // 移除换行符，并反字符串转义
+        return redoGetStrings(result.replace(/\n/g, ''), strDic);
     };
 })();
 
