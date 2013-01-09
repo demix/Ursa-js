@@ -46,11 +46,17 @@ if (__ssjs__) {
      * @param Array|Object range
      */
     function each(rge, callback) {
-        var index = 0;
-        for (var key in rge) {
-            if (typeof rge[key] != 'function') {
-                callback && callback(rge[key], key, index);
-                index++;
+        if(rge instanceof Array) {
+            for (var i = 0, len = rge.length; i < len; i++) {
+                callback && callback(rge[i], i, i);
+            }
+        } else if(rge instanceof Object) {
+            var index = 0;
+            for (var key in rge) {
+                if (typeof rge[key] != 'function') {
+                    callback && callback(rge[key], key, index);
+                    index++;
+                }
             }
         }
     };
@@ -94,7 +100,7 @@ if (__ssjs__) {
      */
     function _length(rge) {
         if (!rge) return 0;
-        if (rge.join) return rge.length;
+        if (rge instanceof Array) return rge.length;
         var length = 0;
         each(rge, function(item, i, index) {
             length = index + 1;
@@ -110,7 +116,7 @@ if (__ssjs__) {
      */
     function _jsIn(key, rge) {
         if(!key || !rge) return false;
-        if(rge.join) {
+        if(rge instanceof Array) {
             for(var i = 0, len = rge.length; i < len; i++) {
                 if(key == rge[i]) return true;
             }    
@@ -168,7 +174,7 @@ if (__ssjs__) {
     
     function _join(vars, div) {
         if(!vars) return '';
-        if(vars.join) return vars.join(div);
+        if(vars instanceof Array) return vars.join(typeof div != 'undefined' ? div : ',');
         return vars;
     };
     
@@ -467,6 +473,43 @@ if (__ssjs__) {
         }
         return '__@begin@__' + k + '__@end@__';
     };
+    /*
+        转换产出
+        将语法识别和编译替换拆分
+     */
+    // 模板头编译产物
+    Ursa.ioStart = function() {
+        return 'function (__context) {var __output = [];with(__context) {';
+    };
+    // 模板尾编译产物
+    Ursa.ioEnd = function() {
+        return '};return __output.join("");}';
+    };
+    // 模板html片段编译产物
+    Ursa.ioHTML= function(ins) {
+        return '__output.push("' + _escape(ins, 'js') + '");'
+    };
+    /*
+     模板语法的编译需要完成对表达式内filter,function,and not in等操作符的编译替换
+     */
+    // 输出语句编译产物
+    Ursa.ioOutput = function(ins) {
+        return output(ins);
+    };
+    // 不包含tag的语句编译产物
+    Ursa.ioOP = function(ins) {
+        return compileOperator(ins) + ';'
+    };
+    // 包含tag的语句编译产物
+    Ursa.ioMerge = function(matches, sourceObj, flag) {
+        return merge(tagsReplacer[matches], sourceObj, flag);
+    };
+    /*
+     end
+     */
+    Ursa.set = function(key, value) {
+        Ursa[key] = value;
+    };
     /**
      * 解析器
      *
@@ -474,9 +517,10 @@ if (__ssjs__) {
      * @param string tplString 模板源.
      */
     function parse(tplString) {
-        var body = cleanWhiteSpace(tplString).split('');
+        var body = cleanWhiteSpace(tplString);//.split('');
+        if(typeof body[0] == 'undefined') body = body.split('');
         // 逐字符编译
-        var result = 'function (__context) {var __output = [];with(__context) {'
+        var result = Ursa.ioStart()
             , pointer = 0
             , statementpointer = 0
             , stack = []
@@ -532,7 +576,7 @@ if (__ssjs__) {
             } else if((body[pointer] == '{') && (typeof body[pointer + 1] != 'undefined') && (body[pointer + 1].match(/[\{%#]/))) {
                 // 非语法在堆栈内
                 if(isStatementInStack == 2) {
-                    result += '__output.push("' + _escape(stack.join(''), 'js') + '");'; 
+                    result += Ursa.ioHTML(stack.join('')); 
                     isStatementInStack = false;
                     stack = [];
                 // 语法在堆栈内，结束前检测到开始，抛出错误
@@ -560,7 +604,7 @@ if (__ssjs__) {
                     // 输出
                     if(body[pointer] == '}') {
                         var source = _trim(stack.join(''));
-                        result += output(source);
+                        result += Ursa.ioOutput(source);
                     // 语句
                     } else {
                         // 判断当前的语句是否在一个if或者for单元内
@@ -585,9 +629,9 @@ if (__ssjs__) {
                                 // 开始标签，将tagStack指针指向栈顶，并标明当前开始标签的类型
                                 if(matches == 'if' || matches == 'for') tagStackPointer.push({p: tagStack.length - 1, type: matches});
                             }
-                            result += merge(tagsReplacer[matches], {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
+                            result += Ursa.ioMerge(matches, {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
                         } else {
-                            result += compileOperator(source) + ';';
+                            result += Ursa.ioOP(source);
                         }
                     }
                     stack = [];
@@ -609,19 +653,20 @@ if (__ssjs__) {
         // 非语法一开始是由语法开始标记触发，编译最后需要检测一下stack内是否有遗留内容
         if(stack.length) {
             if(isStatementInStack == 2) {
-                result += '__output.push("' + _escape(stack.join(''), 'js') + '");'; 
+                result += Ursa.ioHTML(stack.join('')); 
                 stack = null;
             // 如果仍是语法标志，stack不为空，表示肯定缺少结束标记
             } else {
                 dumpError(8, stack.join(''));
             }
         } 
-        result += '};return __output.join("");}';
+        result += Ursa.ioEnd();
         // 标签未闭合，可以加个自动修复，哈哈
         if(tagStack.length) dumpError(5, tplString, pointer, tagStack);
         // 移除换行符，并反字符串转义
         return redoGetStrings(result.replace(/\n/g, ''), strDic);
     };
+    Ursa.parse = parse;
 })();
 
 if(__ssjs__) {

@@ -46,7 +46,6 @@ for (var i = 0; i < length; i ++) {
 
 // 待测试的引擎列表
 var testList = [
-
     {
         name: 'artTemplate',
         tester: function () {
@@ -124,7 +123,6 @@ var testList = [
             }
         }
     },
-    
      // jqueryTmpl 太慢，可能导致浏览器停止响应
     /*{
         name: 'jqueryTmpl',
@@ -135,7 +133,6 @@ var testList = [
             }
         }
     },*/
-    
     {
         name: 'Mustache',
         tester: function () {
@@ -145,7 +142,6 @@ var testList = [
             }
         }
     },
-    
     {
         name: 'Ursa',
         tester: function () {
@@ -169,7 +165,6 @@ var testList = [
     }
     
 ];
-
 KISSY.use('template',function(S,T) {
     testList.push({
         name: 'kissyTemplate',

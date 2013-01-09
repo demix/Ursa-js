@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ursa Template Test</title>  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+    <h1 class="qunit-header">Ursa Template Test</h1>
+    <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+        {%if list%}
+            nihao
+        {%else%}
+            nihao
+        {%endif%}
+    </textarea>
+    <div id="res"></div>
+    <script src="./Ursa.js"></script>
+    <script src="./Ursa-jsp.js"></script>
+    <script>
+        // only compile
+        var test = Ursa.parse(document.getElementById('t2').value, 'test');
+        
+        document.getElementById('res').innerHTML = test.replace(/<|>/g, function(r) {
+                if(r == '>') return '&gt;';
+                return '&lt;';
+            });
+    </script>
+</body>
+</html>
