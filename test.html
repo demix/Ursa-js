@@ -1,0 +1,24 @@
+<script src="./complile.js"></script>
+<textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+    {%set a = User.info%}
+    {{'set a = user'}}
+    {%set aa = 'set u o'%}
+    {%for user in UserList%}
+        {%if user.like%}
+            {%for item in user.like%}
+                {{item.name}}
+            {%elif%}
+                aa
+            {%endfor%}
+        {%endif%}
+    {%endfor%}
+    {%for i in range(1,100)%}
+        {{i}}
+    {%endfor%}
+</textarea>
+<script>
+var v = document.getElementById('t2').value;
+var o = SyntaxGetter(v);
+var x = dataBuilder(o);
+console.log(x);
+</script>

@@ -1,0 +1,59 @@
+var config = {
+        starter: '{',
+        ender  : '}',
+        commentStarter: '#',
+        commentEnder: '#',
+        opStarter: '{',
+        opEnder: '}',    
+        statementStarter: '%',
+        statementEnder  : '%'
+    }
+    , starter = config.starter
+    , ender   = config.ender
+    , commentStarter = config.commentStarter
+    , commentEnder = config.commentEnder
+    , opStarter = config.opStarter
+    , opEnder = config.opEnder
+    , statementStarter = config.statementStarter
+    , statementEnder   = config.statementEnder;
+function SyntaxGetter(tplString) {
+    var pointer = 0
+        , character
+        , stack = [],
+        , statement = ''
+        , type  = false;  
+
+    while(pointer < tplString.length) {
+        character = tplString.charAt(pointer); 
+        // 注释
+        if(type == 3) {
+            // 注释结束标记
+            if(character == commentEnder) {
+                pointer++;
+                character = tplString.charAt(pointer);
+                // 语法结束标记 
+                if(character == ender) {
+                    type = false;
+                }
+            } 
+            pointer++;
+            continue;
+        }
+        if(type % 3 == 1 && (character == '\'' || character == '"')) {
+            var start =tplString[pointer++]
+                , tmpStr = start;
+            //stack.push(start);
+            while((character = tplString[pointer++]) && (character != start)) {
+                if(character == '\\') {
+                    //stack.push('\\');
+                    tmpStr += '\\';
+                    character = tplString[pointer++];
+                }
+                tmpStr += character;
+            }
+            //stack.push(start);
+            tmpStr += start;
+            stack.push(tmpStr);
+        }
+    }
+};

@@ -1,0 +1,151 @@
+
+    function parse(tplString) {
+        var body = cleanWhiteSpace(tplString);//.split('');
+        if(typeof body[0] == 'undefined') body = body.split('');
+        // 逐字符编译
+        var result = Ursa.ioStart()
+            , pointer = 0
+            //, statementpointer = 0
+            , stack = []
+            // 用来记录tag list，检测tag是否闭合，并且用来区分forelse 和 ifelse
+            , tagStack = []
+            , tagStackPointer = []
+            // 3 注释语法， 1 语句语法， 2 非语法，4输出语法
+            , type = false
+            , strDic = {};
+
+        
+        while(pointer < body.length) {
+            // 最先检测是否注释
+            if(type == 3) {
+                // 注释内，未检测到语法结束标记
+                if(body[pointer] == '#' && (typeof body[pointer + 1] != 'undefined') && (body[pointer + 1] == '}')) {
+                    type = false;
+                    // 后移两位
+                    pointer += 2;
+                } else {
+                    pointer++;
+                    continue;
+                }
+            }
+            // 检测字符串常量，并转义?
+            if(type % 3 == 1 && (body[pointer] == '\'' || body[pointer] == '"')) {
+                var start = body[pointer];
+                var tmpStr = '';
+                //stack.push(start);
+                tmpStr += start;
+                pointer ++;
+                while((typeof body[pointer] != 'undefined') && (body[pointer] != start)) {
+                    if(body[pointer] == '\\') {
+                        //stack.push('\\');
+                        tmpStr += '\\';
+                        pointer ++;
+                    }
+                    tmpStr += body[pointer] || '';
+                    pointer ++;
+                    //stack.push(body[pointer] || '');
+                }
+                //stack.push(start);
+                tmpStr += start;
+                stack.push(setKeyV(strDic, tmpStr));
+                var a;
+            // 碰到转义符，指针向后移多移动一位，将\后的字符push到站内
+            } else if(body[pointer] == '\\') {
+                pointer++; 
+                if(typeof body[pointer] == undefined) dumpError(1, tplString, pointer);
+                if(body[pointer] != '{') stack.push('\\');
+                if(body[pointer] == '\\') stack.push('\\');
+                stack.push(body[pointer]);
+            } else if((body[pointer] == '{') && (typeof body[pointer + 1] != 'undefined') && (body[pointer + 1].match(/[\{%#]/))) {
+                // 非语法在堆栈内
+                if(type == 2) {
+                    result += Ursa.ioHTML(stack.join('')); 
+                    type = false;
+                    stack = [];
+                // 语法在堆栈内，结束前检测到开始，抛出错误
+                } else if(type) {
+                    dumpError(2, tplString, pointer);
+                }
+                // 碰到括号向后多移一位
+                pointer++;
+                if(typeof body[pointer] != undefined) {
+                    switch(body[pointer]) {
+                        case '{':type = 4;break;
+                        case '#':type = 3;break;
+                        case '%':type = 1;break;
+                        default:dumpError(3, tplString, pointer);
+                    }
+                }
+                // 去掉未闭合检测，以支持字符串常量检测
+                //pointer++;
+                //if(typeof body[pointer] == undefined) dumpError(4, tplString, pointer);
+                // 非注释语句进堆栈
+                //if(type != 3) stack.push(body[pointer]);
+            } else if(typeof body[pointer] != 'undefined' && body[pointer].match(/[\}%]/g)){
+                // 语法结束标记
+                if((type != 2) && (typeof body[pointer + 1] != 'undefined') && (body[pointer + 1] == '}')) {
+                    // 输出
+                    if(body[pointer] == '}') {
+                        var source = _trim(stack.join(''));
+                        result += Ursa.ioOutput(source);
+                    // 语句
+                    } else {
+                        // 判断当前的语句是否在一个if或者for单元内
+                        var start = tagStackPointer[tagStackPointer.length - 1];
+                        // 额，容错太牛逼了，elseaa居然是合法的
+                        var reg = new RegExp('^(' + tags + ')[\\s]*', 'g')
+                            , matches
+                            , flag = start && start.type
+                            , source = _trim(stack.join(''));
+                        if((matches = source.match(reg))) {
+                            matches = _trim(matches[0]);
+                            // 结束标签，出栈
+                            if(matches.indexOf('end') == 0) {
+                                // 没有开始标签，就出现结束标签
+                                if(!start) dumpError(7, tplString, pointer, matches);
+                                // 主要为for服务，检查是否存在forelse
+                                flag = tagStack.splice(start.p, tagStack.length - start.p).length > 1;
+                                tagStackPointer.splice(tagStackPointer.length - 1, 1);
+                            // 需要进栈的标签
+                            } else if(matches != 'set'){
+                                tagStack.push(matches);
+                                // 开始标签，将tagStack指针指向栈顶，并标明当前开始标签的类型
+                                if(matches == 'if' || matches == 'for') tagStackPointer.push({p: tagStack.length - 1, type: matches});
+                            }
+                            result += Ursa.ioMerge(matches, {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
+                        } else {
+                            result += Ursa.ioOP(source);
+                        }
+                    }
+                    stack = [];
+                    // 语法操作完毕，将标志位置为false
+                    type = false;
+                    pointer++;
+                } else {
+                    stack.push(body[pointer]);
+                }
+            // 普通字符
+            } else {
+                if(!type) {
+                    type = 2;
+                }
+                stack.push(body[pointer]);
+            }
+            pointer ++;
+        }
+        // 非语法一开始是由语法开始标记触发，编译最后需要检测一下stack内是否有遗留内容
+        if(stack.length) {
+            if(type == 2) {
+                result += Ursa.ioHTML(stack.join('')); 
+                stack = null;
+            // 如果仍是语法标志，stack不为空，表示肯定缺少结束标记
+            } else {
+                dumpError(8, stack.join(''));
+            }
+        } 
+        result += Ursa.ioEnd();
+        // 标签未闭合，可以加个自动修复，哈哈
+        if(tagStack.length) dumpError(5, tplString, pointer, tagStack);
+        // 移除换行符，并反字符串转义
+        return redoGetStrings(result.replace(/\n/g, ''), strDic);
+    };

@@ -3,7 +3,6 @@
 <head>
     <title>Ursa Template Test</title>  
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="vendor/qunit.css" type="text/css" media="screen">
     <script src="Ursa.js"></script>
 </head>
 <body>
@@ -30,13 +29,11 @@
         2,is not操作，后面更的参数，函数，内部不能包含空格，否则会报错
         3,开发function和filter指南 window._callName = function(vars, xxxx) {},调用的时候直接 vars|callName(xxx)
         4,给is 添加类型判断函数
-        Ursa.varType = Ursa.varType || {};
         Ursa.varType['hot'] = function(vars) {
             return vars > 10;
         }
         call as : 20 is hot
         5.给escape增加转义类型
-        Ursa.escapeType = Ursa.escapeType || {};
         Ursa.escapeType['number'] = function(str) {
             return str ? str.replace(/[^0-9\.]/g, '') : 0;
         }
@@ -92,7 +89,7 @@
     19872 is divisibleby(2)  is {{19872 is divisibleby(2)}}
     19872 is not divisibleby(3)  is {{19872 is not divisibleby(3)}}
     19872 is divisibleby(3)  is {{19872 is divisibleby(3)}}
-    19871 is not divisibleby(3)  is {{19872 is not divisibleby(3)}}
+    19871 is not divisibleby(3)  is {{19871 is not divisibleby(3)}}
     23 >= 22 is {{23 >= 22}}
     22 <= 23 is {{22 <= 23}}
     1 == true is {{1 == true}}
@@ -115,7 +112,6 @@
     20 is hot and 19 is not hot is {{20 is hot and 9 is not hot}}
     </textarea>
     <div id="res"></div>
-    <script src="test.js"></script>
     <script type="text/html" id="template">
     <%
     // a comment
@@ -125,10 +121,15 @@
     <script>
         // only compile
         var test = Ursa.compile(document.getElementById('t2').value, 'test');
+        Ursa.varType.hot = function(num) {
+            return num > 10    
+        }
         
         // re compile and render
         var test2 = Ursa.render('test2',{names:[1,2,3]},document.getElementById('t2').value);
+        var test22 = Ursa.render('test22',{names:[window.b2,2,3]},document.getElementById('t22').value);
         document.getElementById('res').innerHTML = ('<pre>' + test2 + '</pre>');
+        document.getElementById('res').innerHTML = ('<pre>' + test22 + '</pre>');
     </script>
 </body>
 </html>
