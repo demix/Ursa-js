@@ -103,7 +103,18 @@ Ursa-js
     default - vars|default('vars is not defined') - 给vars指定一个默认值
 
     escape - var|escape[('js' or 'none')] - 对vars进行转义，默认会对所有输出进行转义，转义类型也可以开发扩展函数
+    
+###6，扩展is类型判断 Ursa.varType['hot'] = function(vars){return xxx};
 
+###7，扩展escape类型 Ursa.escapeType['number'] = function(str){return xxx};
+
+###8，修改语法界定符 所有语法必须由 starter + type starter + statement + type ender + ender组成
+
+   starter + commentStarter comment commentEnder + starter - 注释语法
+   
+   starter + opStarter statement opEnder + starter - 输出语法
+   
+   starter + statementStarter statement statementEnder + starter - 语句
 
 
 
