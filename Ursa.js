@@ -214,10 +214,6 @@ if (__ssjs__) {
         return vars;
     };
     
-    function _length(vars) {
-        return vars ? vars.length : 0;
-    };
-    
     function _replace(str, replacer) {
         if(!str) return '';
         var str = str;
