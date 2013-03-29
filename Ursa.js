@@ -620,6 +620,7 @@ if (__ssjs__) {
 				}
 			// 语法结束
 			} else if(endType = character.match(endStartReg)) {
+				// 结束标记起始，语句 or 输出
 				endType = endType[0];
 				if(type != 2) {
 					character = tplString[++pointer]; 
@@ -674,8 +675,10 @@ if (__ssjs__) {
 						stack = '';
 						continue;
 					}
+					stack += endType + character;
+				} else {
+					stack += endType;
 				}
-				stack += endType + character;
 			} else {
 				if(!type) {
 					type = 2    
