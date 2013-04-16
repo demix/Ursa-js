@@ -254,6 +254,36 @@ if (__ssjs__) {
             return '&gt;';
         })
     };
+    // escape none
+    function _raw(str) {
+        return {
+            safe: 1,
+            str: str    
+        }    
+    };
+    // 截取字符串
+    function _truncate(str, len, killwords, end) {
+        if(typeof str == 'undefined') return '';   
+        var str = new String(str);
+        var killwords = killwords || false;
+        var end = end || '..';
+        if(killwords) return (typeof len == 'undefined' ? str.substr(0, str.length) : str.substr(0, len) + (str.length <= len ? '' : end));
+        return end;
+    };
+    function _substring(str, start, end) {
+        if(typeof str == 'undefined') return '';   
+        var str = new String(str);
+        var end = typeof end != 'undefined' ? end : str.length;
+        return str.substring(start, end);
+    };
+    function _upper(str) {
+        if(typeof str == 'undefined') return '';   
+        return new String(str).toUpperCase();
+    };
+    function _lower(str) {
+        if(typeof str == 'undefined') return '';   
+        return new String(str).toLowerCase();
+    };
     // filter and function area end
     
     // cache tpl function
@@ -575,18 +605,17 @@ if (__ssjs__) {
 						type = false;
 					}
 				} 
-				++pointer;
 				continue;
 			}
 			// 字符串常量
 			if(type % 3 == 1 && (character == '\'' || character == '"')) {
-				var start = tplString[pointer]
+				var start = tplString.charAt(pointer)
 					, tmpStr = start;
 				//stack.push(start);
-				while((character = tplString[++pointer]) && (character != start)) {
+				while((character = tplString.charAt(++pointer)) && (character != start)) {
 					if(character == '\\') {
 						tmpStr += '\\';
-						character = tplString[++pointer];
+						character = tplString.charAt(++pointer);
 					}
 					tmpStr += character;
 				}
@@ -596,11 +625,11 @@ if (__ssjs__) {
 				//stack += '__string__';
 			// 转义
 			} else if(character == '\\') {
-				character = tplString[++pointer];    
+				character = tplString.charAt(++pointer);    
 				stack += character;
 			// 语法起始符
 			} else if(character == starter) {
-				character = tplString[++pointer];
+				character = tplString.charAt(++pointer);
 				oldType = type;
 				switch(character) {
 					case commentStarter: type = 3;break;
@@ -623,7 +652,7 @@ if (__ssjs__) {
 				// 结束标记起始，语句 or 输出
 				endType = endType[0];
 				if(type != 2) {
-					character = tplString[++pointer]; 
+					character = tplString.charAt(++pointer); 
 					// 语法结束
 					if(character == ender) {
 						// 输出结束
