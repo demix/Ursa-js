@@ -239,8 +239,8 @@ if (__ssjs__) {
     };
     
     function _escape(str, type) {
-        if(typeof str == 'undefined') return '';
-        if(str.safe == 1) return str.str;
+        if(typeof str == 'undefined' || str == null) return '';
+        if(str && (str.safe == 1)) return str.str;
         var str = str.toString();
         // js
         if(type == 'js') return str.replace(/\'/g, '\\\'').replace(/\"/g, '\\"');
@@ -266,7 +266,7 @@ if (__ssjs__) {
         if(typeof str == 'undefined') return '';   
         var str = new String(str);
         var killwords = killwords || false;
-        var end = end || '..';
+        var end = typeof end == 'undefined' ? '...' : '';
         if(killwords) return (typeof len == 'undefined' ? str.substr(0, str.length) : str.substr(0, len) + (str.length <= len ? '' : end));
         return end;
     };
@@ -327,12 +327,21 @@ if (__ssjs__) {
                     var statement = obj.statement
                         // 形参
                         , args = statement.split(/[\s]+in[\s]+/g)[0]
+                        , _args
+                        , _value = _args
+                        , _key = args
                         // 被循环的对象
                         , context = statement.replace(new RegExp('^' + args + '[\\s]+in[\\s]+', 'g'), '');
                     if(args.indexOf(',') != -1){
                         args = args.split(',');
                         if(args.length > 2) dumpError('多余的","在' + args.join(','), 'tpl');
-                        args = args.reverse().join(',');
+                        _key = args[0];
+                        _value = args[1];
+                        _args = args.reverse().join(',');
+                    } else {
+                        _key = '_key';    
+                        _value = args;
+                        _args = args + ',' + '_key';
                     }
                     return '(function() {' +
                                 'var loop = {' +
@@ -341,9 +350,11 @@ if (__ssjs__) {
                                     'length: _length(' + context + ')' +
                                 '}; ' +
                             'if(loop.length > 0) {' +
-                                'each(' + context +', function(' + args + ') {' + 
+                                'each(' + context +', function(' + _args + ') {' + 
                                     'loop.index ++;' +
                                     'loop.index0 ++;' +
+                                    'loop.key = ' + _key + ';' +
+                                    'loop.value = ' + _value + ';' +
                                     'loop.first = loop.index0 == 0;' + 
                                     'loop.last = loop.index == loop.length;'
                 }
