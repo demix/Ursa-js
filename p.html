@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ursa Template Test</title>  
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="./Ursa-powerfull.js"></script>
+</head>
+<body>
+    <h1 class="qunit-header">Ursa Template Test</h1>
+    <textarea type="text/tpl" id="t24" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+    我去
+    </textarea>
+    <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+        {% block title %}
+        nihao
+        {% endblock %}
+        {%block content %}
+        ni hao 2
+        {% endblock %}
+    </textarea>
+    <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+        {% extends 't2' %}
+        nihao ershi
+        {% set gun="qusi" %}
+        {{gun}}
+        {% block content %}
+        hehe
+        aa{{gun}}
+        {% include 't24' %}
+        {% endblock %}
+    </textarea>
+    <div id="res"></div>
+    <script>
+        // only compile
+        //var test = Ursa.compile(document.getElementById('t2').value, 'test');
+        Ursa.varType.hot = function(num) {
+            return num > 10    
+        }
+        
+        // re compile and render
+        //var test2 = Ursa.render('test2',{names:[1,2,3]},document.getElementById('t2').value);
+        var test22 = Ursa.render('test22',{names:[window.b2,2,3]},document.getElementById('t22').value);
+        //document.getElementById('res').innerHTML = ('<pre>' + test2 + '</pre>');
+        document.getElementById('res').innerHTML = ('<pre>' + test22 + '</pre>');
+    </script>
+</body>
+</html>
