@@ -8,11 +8,13 @@
 <body>
     <h1 class="qunit-header">Ursa Template Test</h1>
     <textarea type="text/tpl" id="t24" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
-    我去
+    我去,I'm t24.
     </textarea>
     <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
         {% block title %}
-        nihao
+        nihao, I'm t2.
+        {% include 't24'%}
+        {{ gun }}
         {% endblock %}
         {%block content %}
         ni hao 2
@@ -21,11 +23,15 @@
     <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
         {% extends 't2' %}
         nihao ershi
+        {% if _name is defined %}
         {% set gun="qusi" %}
+        {% else %}
+        {% set gun="qusi ba" %}
+        {% endif %}
         {{gun}}
         {% block content %}
-        hehe
-        aa{{gun}}
+        hehe, I'm t22.
+        aa, {{gun}}
         {% include 't24' %}
         {% endblock %}
     </textarea>

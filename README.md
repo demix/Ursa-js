@@ -46,6 +46,15 @@ Ursa-js
 
     {%set var = exper%} 声明一个变量
 
+
+    new - 模板的路径之类通过实现Ursa.tplLoader来自行配置，默认的是在页面内获取id=tplName的元素的innerHTML。如果是textarea将获取value属性
+
+    {% extends 'tplName' %} 继承一个模板，在非block或者父级模板没有定义的block外的输出将被忽略，而非输出语句将会被注入到父模板头部
+
+    {% include 'tplName' %} 包含一个模板，被引用模板可以访问模板内的变量，但是模板不能访问被引用模板内的变量
+
+    {% block blockName %} - {% endblock %} 定义一个模块，可以被继承重写，也可以默认输出，block不能嵌套
+
 ###3，支持的操作符
 
     in - a in b - a是否在数组或者字符串b内 
