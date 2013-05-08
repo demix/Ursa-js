@@ -9,14 +9,15 @@ Ursa-js
 
 2，语法识别和编译替换分离，只要重写Ursa的编译替换逻辑，就可以编译输出为其他语言，比如php,jsp等，Ursa只实现了对js的支持
 
-3，jinja的子集，理论上，前端模板可以迁移到后端运行
+3，jinja的子集，理论上，前端模板可以迁移到后端运行，其中Ursa-powerfull.js已经基本上达到jinja,twig所实现了功能，除了一些filter以及macro标签未实现外，继承、模块已经实现，只需要根据需要重写Ursa.tplLoader
 
-不足和bug:
+不足和bug【问题1和2已经在Ursa-powerfull.js以及Ursa-new.js内修复，基本可以使用任意复杂的运算表达式】:
 
 1，is 和 in 语法的支持不够用，存在一些语法上的限制和bug，由于js本身对is 和 in 并不支持或者支持的不好，因此在使用这两个operator时必须简单，并且符合某种规范，如下：
 
    a is funcType ? "yes" : "no" - 三元运算，funcType后面一定要跟一个空格，作为funcType的结束表示符，另外funcType内不能包含空格，以上要求同样适用于in
-    
+   
+
 2，输出语句对过滤器的支持不够，限制了一个输出语句内只能对一个参数或者语句执行filter操作，例如：
 
    range|sort|slice(0,2)|join('-') + otherStatment 要求最后一个filter操作后面需用一个空格和其他语句隔开，并且其他语句是不能再适用filter操作，例如：
@@ -86,6 +87,12 @@ Ursa-js
     <=
 
     ==
+    
+    【new】
+    
+    **
+    
+    //
 
 ###4，支持的函数
 
@@ -121,11 +128,11 @@ Ursa-js
 
 ###8，修改语法界定符 所有语法必须由 starter + type starter + statement + type ender + ender组成
 
-   starter + commentStarter comment commentEnder + starter - 注释语法
+   starter + commentStarter comment commentEnder + ender - 注释语法
    
-   starter + opStarter statement opEnder + starter - 输出语法
+   starter + opStarter statement opEnder + ender - 输出语法
    
-   starter + statementStarter statement statementEnder + starter - 语句
+   starter + statementStarter statement statementEnder + ender - 语句
 
 
 
