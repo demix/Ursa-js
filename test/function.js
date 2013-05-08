@@ -21,7 +21,7 @@ $(document).ready(function() {
         var test2 = test({type: 1});
         equal(test2, "1,2,3,4,5,6,7,8,9" , tpl + ' ok');
         
-        tpl = '{{range(10,1)|join()}}';
+        tpl = '{{range(10,1)|join(",")}}';
         test = Ursa.compile(tpl,'test3');
         test2 = test({});
         equal(test2, "10,9,8,7,6,5,4,3,2" , tpl + ' ok');
@@ -57,7 +57,7 @@ $(document).ready(function() {
     
     
     test("Ursa/function/replace", function() {
-        var tpl = '{{"hello, Mr %he%, my name is %me%. I\'m %age% years old."|replace({\'%he%\':\'Smith\',\'%me%\':\'Skipper\',\'%age%\':24})}}';
+        var tpl = '{{"hello, Mr %he%, my name is %me%. I\'m %age% years old."|replace({"%he%":"Smith","%me%":"Skipper","%age%": 24})}}';
         var test = Ursa.compile(tpl,'test3');
         var test2 = test({type: 1});
         equal(test2, "hello, Mr Smith, my name is Skipper. I'm 24 years old." , tpl + ' ok');

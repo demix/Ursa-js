@@ -19,11 +19,11 @@
         {%block content %}
         ni hao 2
         {% endblock %}
-    </textarea>
-    <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
-        {% extends 't2' %}
+    </textarea><!--
+	{#
+		{% extends 't2' %}
         nihao ershi
-        {% if _name is defined %}
+        {% if _name is defined or 2 in range(20,1)|sort(1,2,3 ** 4)|sort%}
         {% set gun="qusi" %}
         {% else %}
         {% set gun="qusi ba" %}
@@ -31,9 +31,14 @@
         {{gun}}
         {% block content %}
         hehe, I'm t22.
-        aa, {{gun}}
+        aa, {{gun}} 3 ** 4 = {{3 ** 4}} {{3 is divisibleby 3}} {{"a" in "abcd"}}
         {% include 't24' %}
         {% endblock %}
+		#}
+	-->
+    <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+        
+		{{"hello, Mr %he%, my name is %me%. I\'m %age% years old."|replace({"%he%":"Smith","%me%":2,"%age%": 23})}}
     </textarea>
     <div id="res"></div>
     <script>

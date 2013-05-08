@@ -9,7 +9,7 @@ $(document).ready(function() {
         equal(test2, 'true' , tpl + ' ok');
         
         test2 = test({type: 0});
-        equal(test2, '', tpl + 'in ok');
+        equal(test2, 'false', tpl + 'in ok');
         
         tpl = '{{"a" in "abcd"}}';
         test = Ursa.compile(tpl,'test3');
@@ -29,19 +29,19 @@ $(document).ready(function() {
         equal(test2, 'true' , tpl + ' ok');
         
         test2 = test({type: 0});
-        equal(test2, '', tpl + ' ok');
+        equal(test2, 'false', tpl + ' ok');
         
         tpl = '{{type is defined}}';
         test = Ursa.compile(tpl,'test3');
         test2 = test({});
-        equal(test2, '', tpl + ' ok');
+        equal(test2, 'false', tpl + ' ok');
         
         tpl = '{{2 is even}}';
         test = Ursa.compile(tpl,'test3');
         test2 = test({});
         equal(test2, 'true', tpl + ' ok');
         
-        tpl = '{{19872 is divisibleby(2)}}';
+        tpl = '{{19872 is divisibleby 2}}';
         test = Ursa.compile(tpl,'test3');
         test2 = test({});
         equal(test2, 'true', tpl + ' ok');
@@ -60,7 +60,7 @@ $(document).ready(function() {
         var tpl = '{{not type}}';
         var test = Ursa.compile(tpl,'test3');
         var test2 = test({type: 1});
-        equal(test2, '' , tpl + ' ok');
+        equal(test2, 'false' , tpl + ' ok');
         
         test2 = test({type: 0});
         equal(test2, 'true', tpl + ' ok');
@@ -68,7 +68,7 @@ $(document).ready(function() {
         tpl = '{{type is defined}}';
         test = Ursa.compile(tpl,'test3');
         test2 = test({});
-        equal(test2, '', tpl + ' ok');
+        equal(test2, 'false', tpl + ' ok');
         
         tpl = '{{type is not defined}}';
         test = Ursa.compile(tpl,'test3');
@@ -83,7 +83,7 @@ $(document).ready(function() {
         equal(test2, '1' , tpl + ' ok');
         
         test2 = test({type: 0});
-        equal(test2, '', tpl + ' ok');
+        equal(test2, '0', tpl + ' ok');
     });
     
     

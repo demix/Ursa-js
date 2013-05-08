@@ -646,7 +646,7 @@ if (__ssjs__) {
 					case commentStarter: type = 3;break;
 					case opStarter:      type = 4;break;
 					case statementStarter:type = 1;break; 
-					default:stack += starter + character;continue;break;
+					default:/*可能是字符串常量开始，回退一个字符*/stack += starter;if(character.match(/[\'\"]/g)) {pointer--;} else {stack += character};continue;break;
 				}
 				// 非语法出栈
 				if(oldType == 2) {

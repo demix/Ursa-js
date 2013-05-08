@@ -298,7 +298,7 @@ if (__ssjs__) {
      * @param string [tplString] 模板源，可缺省.
      */
     Ursa.render = function(tplName, data, tplString) {
-        if(!Ursa._tpl[tplName]) Ursa.compile(tplString, tplName);
+        if(!Ursa._tpl[tplName])Ursa.compile(tplString, tplName);
         return Ursa._tpl[tplName](data);
     };
     /**
@@ -309,53 +309,8 @@ if (__ssjs__) {
      * @param string tplString 模板源.
      * @param string [tplName] 模板名，可缺省.
      */
-    Ursa.cache = {};
-    Ursa.getTplStr = function(tplName) {
-        if(!Ursa.cache[tplName]) {
-            Ursa.compile(Ursa.tplLoader(tplName), tplName);    
-        }    
-        return Ursa.cache[tplName];
-    }
     Ursa.compile = function(tplString, tplName) {
-        var obj = SyntaxGetter(tplString, tplName || +(new Date()));
-        var res = obj.result
-            , par
-            , ores = new Array(res.length);
-        if(obj.extended) {
-            par = Ursa.getTplStr(obj.extended);    
-            res = [];
-            for(var i = 0, arr = par.result, len = arr.length; i < len; i++) {
-                res.push(arr[i]);    
-            }
-            if(!obj.block.__empty) {
-                for(var i in obj.block) {
-                    if(i == '__empty') continue;    
-                    if(par.block && par.block[i]) {
-                        var o = par.block[i]
-                            , n = obj.block[i];
-                        if(o.length == 2 && n.length == 2) {
-                            Array.prototype.splice.apply(res, [o[0], o[1] - o[0]].concat(obj.result.slice(n[0], n[1])));
-                            for(var j = n[0]; j <= n[1]; j++) {
-                                ores[j] = 1;    
-                            }
-                        }
-                    } 
-                }
-                var head = [res.splice(0, 1)];
-                for(var i = 0, len = ores.length; i < len; i++) {
-                    if(ores[i] || !obj.result[i]) continue; 
-                    head.push(obj.result[i]);
-                }
-                res = head.concat(res);
-            }
-        }
-        var str = redoGetStrings(res.join('').replace(/\n/g, ''), obj.strDic);
-        if(par && par.strDic) str = redoGetStrings(str, par.strDic);
-        if(obj.block.__empty) {
-            Ursa.cache[tplName] = str;
-        } else {
-            Ursa.cache[tplName] = obj;
-        }
+        var str = SyntaxGetter(tplString);
         try{
             eval('Ursa._tpl["' + tplName + '"] = ' + str);
         } catch(e) {
@@ -364,114 +319,94 @@ if (__ssjs__) {
         return Ursa._tpl[tplName];
     };
 
-    var tags = 'for|endfor|if|elif|else|endif|set|include|extends|block|endblock';
-	var tagsReplacer = {
-		'for': {
-			'validate': /for[\s]+[^\s]+\sin[\s]+[\S]+/g,
-			'pfixFunc': function(obj) {
-				var statement = obj.statement
-					// 形参
-					, args = statement.split(/[\s]+in[\s]+/g)[0]
-					, _args
-					, _value = _args
-					, _key = args
-					// 被循环的对象
-					, context = statement.replace(new RegExp('^' + args + '[\\s]+in[\\s]+', 'g'), '');
-				if(args.indexOf(',') != -1){
-					args = args.split(',');
-					if(args.length > 2) dumpError('多余的","在' + args.join(','), 'tpl');
-					_key = args[0];
-					_value = args[1];
-					_args = args.reverse().join(',');
-				} else {
-					_key = '_key';    
-					_value = args;
-					_args = args + ',' + '_key';
-				}
-				return '(function() {' +
-							'var loop = {' +
-								'index:0,' +
-								'index0:-1,' +
-								'length: _length(' + context + ')' +
-							'}; ' +
-						'if(loop.length > 0) {' +
-							'each(' + context +', function(' + _args + ') {' + 
-								'loop.index ++;' +
-								'loop.index0 ++;' +
-								'loop.key = ' + _key + ';' +
-								'loop.value = ' + _value + ';' +
-								'loop.first = loop.index0 == 0;' + 
-								'loop.last = loop.index == loop.length;'
-			}
-		},
-		'endfor': {
-			'pfixFunc': function(obj, hasElse) {
-				// 是否存在forelse
-				return (hasElse ? '' : '})') + 
-					'}' + 
-					'})();' 
-			}
-		},
-		'if': {
-			'validate': /if[\s]+[^\s]+/g,
-			'pfixFunc': function(obj) {
-				var statement = obj.statement;
-				var tests = compileOperator(statement);
-				return 'if(' + tests;
-			},
-			'sfix': ') {'
-		},
-		'elif': {
-			'validate': /elif[\s]+[^\s]+/g,
-			'pfixFunc': function(obj) {
-				var statement = obj.statement;
-				var tests = compileOperator(statement);
-				return '} else if(' + tests;
-			},
-			'sfix': ') {'
-		},
-		'else': {
-			'pfixFunc': function(obj, start) {
-				// forelse
-				if(start == 'for') return  '})} else {';
-				return '} else {';
-			} 
-		},
-		'endif': {
-			'pfix': '}' 
-		},
-		'set': {
-			'validate': /set[\s]+[^\s]+/g,
-			'pfixFunc': function(obj) {
-				var statement = obj.statement;
-				var tests = compileOperator(statement);
-				return 'var ' + tests;
-			},
-			'sfix': ';' 
-		},
-		'include': {
-			'pfixFunc': function(obj) {
-				return '__output.push((' + Ursa.getTplStr(obj.realStr.replace(/\'|\"/g, '')) + ')(__context'; 
-			}    
-			, 'sfix': '));'
-		}
-		, 'block': {
-			'pfixFunc': function(obj) {
-				return '__output.push((function(__context){';
-			}
-		}
-		, 'endblock': {
-			'sfix': '})(__context));'     
-		}
-		, 'extends': {
-			'pfixFunc': function(obj) {
-				   
-			 }    
-			 , 'sfix': ''
-		}
-	};
-	
-	var eReg = new RegExp('<|<=|>|>=|!=|==|\\+|\\-|\\*[^\\*]{1}|%|\\*\\*|\/[^/]{1}|\/\/', 'g');
+    var tags = 'for|endfor|if|elif|else|endif|set';
+    var tagsReplacer = {
+            'for': {
+                'validate': /for[\s]+[^\s]+\sin[\s]+[\S]+/g,
+                'pfixFunc': function(obj) {
+                    var statement = obj.statement
+                        // 形参
+                        , args = statement.split(/[\s]+in[\s]+/g)[0]
+                        , _args
+                        , _value = _args
+                        , _key = args
+                        // 被循环的对象
+                        , context = statement.replace(new RegExp('^' + args + '[\\s]+in[\\s]+', 'g'), '');
+                    if(args.indexOf(',') != -1){
+                        args = args.split(',');
+                        if(args.length > 2) dumpError('多余的","在' + args.join(','), 'tpl');
+                        _key = args[0];
+                        _value = args[1];
+                        _args = args.reverse().join(',');
+                    } else {
+                        _key = '_key';    
+                        _value = args;
+                        _args = args + ',' + '_key';
+                    }
+                    return '(function() {' +
+                                'var loop = {' +
+                                    'index:0,' +
+                                    'index0:-1,' +
+                                    'length: _length(' + context + ')' +
+                                '}; ' +
+                            'if(loop.length > 0) {' +
+                                'each(' + context +', function(' + _args + ') {' + 
+                                    'loop.index ++;' +
+                                    'loop.index0 ++;' +
+                                    'loop.key = ' + _key + ';' +
+                                    'loop.value = ' + _value + ';' +
+                                    'loop.first = loop.index0 == 0;' + 
+                                    'loop.last = loop.index == loop.length;'
+                }
+            },
+            'endfor': {
+                'pfixFunc': function(obj, hasElse) {
+                    // 是否存在forelse
+                    return (hasElse ? '' : '})') + 
+                        '}' + 
+                        '})();' 
+                }
+            },
+            'if': {
+                'validate': /if[\s]+[^\s]+/g,
+                'pfixFunc': function(obj) {
+                    var statement = obj.statement;
+                    var tests = compileOperator(statement);
+                    return 'if(' + tests;
+                },
+                'sfix': ') {'
+            },
+            'elif': {
+                'validate': /elif[\s]+[^\s]+/g,
+                'pfixFunc': function(obj) {
+                    var statement = obj.statement;
+                    var tests = compileOperator(statement);
+                    return '} else if(' + tests;
+                },
+                'sfix': ') {'
+            },
+            'else': {
+                'pfixFunc': function(obj, start) {
+                    // forelse
+                    if(start == 'for') return  '})} else {';
+                    return '} else {';
+                } 
+            },
+            'endif': {
+                'pfix': '}' 
+            },
+            'set': {
+                'validate': /set[\s]+[^\s]+/g,
+                'pfixFunc': function(obj) {
+                    var statement = obj.statement;
+                    var tests = compileOperator(statement);
+                    return 'var ' + tests;
+                },
+                'sfix': ';' 
+            }
+        };
+
+   var eReg = new RegExp('<|<=|>|>=|!=|==|\\+|\\-|\\*[^\\*]{1}|%|\\*\\*|\/[^/]{1}|\/\/', 'g');
 	var op = {
 		',': 0.5
 		, 'or': 1
@@ -673,13 +608,13 @@ if (__ssjs__) {
     function getLineNumber(tplString, pointer) {
         return tplString ? (tplString.substr(0,pointer + 1).match(/\n/g) || []).length + 1 : 0; 
     }
-    function setKeyV(obj, value, name) {
+    function setKeyV(obj, value) {
         var k = Math.random() * 100000 >> 0;
-        while(!obj['_' + name + '_' + k + '_e_']) {
+        while(!obj['__`begin`__' + k + '__`end`__']) {
             k ++;
-            obj['_' + name + '_' + k + '_e_'] = value;
+            obj['__`begin`__' + k + '__`end`__'] = value;
         }
-        return '_' + name + '_' + k + '_e_';
+        return '__`begin`__' + k + '__`end`__';
     };
     /*
         转换产出
@@ -712,11 +647,6 @@ if (__ssjs__) {
     Ursa.ioMerge = function(matches, sourceObj, flag) {
         return merge(tagsReplacer[matches], sourceObj, flag);
     };
-    // include tpl by name
-    Ursa.tplLoader = function(name) {
-        var node = document.getElementById(name);
-        return node.tagName.toLowerCase() == 'textarea' ? node.value : now.innerHTML; 
-    };
     /*
      end
      */
@@ -728,9 +658,8 @@ if (__ssjs__) {
      *
      * @return function.
      * @param string tplString 模板源.
-     * @param Boolean extended 是否继承，如果继承，则忽略模块外的输出
      */
-	function SyntaxGetter(tplString, tplName) {
+	function SyntaxGetter(tplString) {
 		var pointer = -1
 			, tplString = cleanWhiteSpace(tplString)
 			, character
@@ -739,14 +668,11 @@ if (__ssjs__) {
 			, endType = ''
 			, tree = []
 			, oldType
-            , resDict = {block: {__empty: 1}}
-            , extended = tplString.match(new RegExp('\\' + config.starter + '\\' + config.statementStarter + '[\\s|\\t]*extends[^\\' +config.statementEnder + ']*' + '\\' + config.statementEnder + '\\' + config.ender))
-            , inblock = 0
-			, result = (!extended || inblock) ? [Ursa.ioStart()] : []
+			, result = Ursa.ioStart()
 			, tagStack = []
 			, tagStackPointer = []
 			, strDic = {}
-			, type  = false;
+			, type  = false;  
 
 		while((character = tplString.charAt(++pointer)) != '') { 
 			id = tagStackPointer.length;
@@ -776,7 +702,7 @@ if (__ssjs__) {
 				}
 				tmpStr += start;
 				//stack += tmpStr;
-				stack += setKeyV(strDic, tmpStr, tplName);
+				stack += setKeyV(strDic, tmpStr);
 				//stack += '__string__';
 			// 转义
 			} else if(character == '\\') {
@@ -795,7 +721,7 @@ if (__ssjs__) {
 				// 非语法出栈
 				if(oldType == 2) {
 					//tree.push(stack);
-					if(!extended || inblock) result.push(Ursa.ioHTML(stack));
+					result += Ursa.ioHTML(stack);
 					stack = '';
 				// 出错
 				} else if(character == ender){
@@ -819,7 +745,7 @@ if (__ssjs__) {
 								v   : stack
 							}) 
 							*/
-							if(!extended || inblock) result.push(Ursa.ioOutput(_trim(stack)));
+							result += Ursa.ioOutput(_trim(stack));
 						// 语句
 						} else {
 							var start = tagStackPointer[tagStackPointer.length - 1]
@@ -829,29 +755,22 @@ if (__ssjs__) {
 								, id = 1;
 							if((matches = source.match(tags))) {
 								matches = matches[0];
-							    var s = source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '');	
 								// 结束标签，出栈
 								if(matches.indexOf('end') == 0) {
 									id = tagStackPointer.length;
-                                    if(matches == 'endblock') {
-                                        resDict.block[start.n] = [start.e, result.length]; 
-                                        resDict.block.__empty = 0;
-                                        inblock = 0;
-                                    }
 									// 主要为for服务，检查是否存在forelse
 									flag = tagStack.splice(start.p, tagStack.length - start.p).length > 1;
 									tagStackPointer.splice(tagStackPointer.length - 1, 1);
 								// 需要进栈的标签
-								} else if(!_jsIn(matches, ['set', 'extends', 'include'])) {
+								} else if(matches != 'set') {
 									tagStack.push(matches);
-									if(_jsIn(matches, ['for', 'if', 'block'])) tagStackPointer.push({p: tagStack.length - 1, type: matches, n: s, e: result.length});
-                                    if(matches == 'block') inblock = 1;
+									if(matches == 'if' || matches == 'for') tagStackPointer.push({p: tagStack.length - 1, type: matches});
 									id = tagStackPointer.length;
 								}
-                                if(matches == 'extends') extended = strDic[s] ? strDic[s].replace(/\'|\"/g, '') : s;
-								result.push(Ursa.ioMerge(matches, {statement: s, realStr: strDic[s] ? strDic[s] : ''}, flag));
+								
+								result += Ursa.ioMerge(matches, {statement: source.replace(new RegExp('^' + matches + '[\\s]*', 'g'), '')}, flag);
 							} else {
-								result.push(Ursa.ioOP(source));
+								result += Ursa.ioOP(source);
 							}
 							/*
 							tree.push({
@@ -880,23 +799,18 @@ if (__ssjs__) {
 		if(stack) {
 			if(type == 2) {
 				//tree.push(stack);    
-				if(!extended || inblock) result.push(Ursa.ioHTML(stack)); 
+				result += Ursa.ioHTML(stack); 
 				stack = null;
 			} else {
 				// 出错    
 				dumpError(8, stack);
 			}
 		}
-		if(!extended || inblock) result.push(Ursa.ioEnd());
+		result += Ursa.ioEnd();
 		// 标签未闭合，可以加个自动修复，哈哈
 		if(tagStack.length) dumpError(5, tplString, pointer, tagStack);
 		// 移除换行符，并反字符串转义
-		//return redoGetStrings(result.replace(/\n/g, ''), strDic);
-        resDict.result = result; 
-        resDict.strDic = strDic;
-        resDict.extended = extended;
-        return resDict;
-        
+		return redoGetStrings(result.replace(/\n/g, ''), strDic);
 	};
 	Ursa.parse = SyntaxGetter;
 	Ursa.setConfig = setConfig;
