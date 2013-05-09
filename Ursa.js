@@ -319,7 +319,7 @@ if (__ssjs__) {
         return Ursa._tpl[tplName];
     };
 
-    var tags = 'for|endfor|if|elif|else|endif|set';
+    var tags = '^(for|endfor|if|elif|else|endif|set)';
     var tagsReplacer = {
             'for': {
                 'validate': /for[\s]+[^\s]+\sin[\s]+[\S]+/g,
@@ -716,8 +716,13 @@ if (__ssjs__) {
 						type = false;
 						stack = '';
 						continue;
+					} else if(character.match(endStartReg)){
+						pointer --;
+						stack += endType;
+						continue;
+					} else {
+						stack += endType + character;
 					}
-					stack += endType + character;
 				} else {
 					stack += endType;
 				}
