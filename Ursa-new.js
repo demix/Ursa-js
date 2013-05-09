@@ -704,10 +704,12 @@ if (__ssjs__) {
 				//stack += tmpStr;
 				stack += setKeyV(strDic, tmpStr);
 				//stack += '__string__';
-			// 转义
+			// 将非语句内的\一律当成字符串常量处理
 			} else if(character == '\\') {
-				character = tplString.charAt(++pointer);    
-				stack += character;
+				type = 2;
+				stack += character + character;
+				//character = tplString.charAt(++pointer);    
+				//stack += character == '\\' ? character + character : character;
 			// 语法起始符
 			} else if(character == starter) {
 				character = tplString.charAt(++pointer);
