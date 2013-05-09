@@ -8,6 +8,13 @@ $(document).ready(function() {
         var test2 = test({type: 1});
         equal(test2, '', '注释语法"' + tpl + '"可以成功编译，渲染');
     });
+
+    test("Ursa/Tag/set", function() {
+        var tpl = "{%set obj={a:-10|abs}%}{{obj.a}}";
+        var test = Ursa.compile(tpl, 'test3');
+        var test2 = test({});
+        equal(test2, '10', 'set语法"' + tpl + '"可以成功编译，渲染');
+    });
     
     test("Ursa/Tag/if,elif,else,endif", function() {
         var tpl = "{%if type is defined%}{{type + 1}}{%elif myname is defined%}my name is {{myname}}{%else%}no{%endif%}"; 

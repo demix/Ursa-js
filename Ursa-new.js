@@ -567,7 +567,7 @@ if (__ssjs__) {
 					s[i] = load;
 				// 正负数
 				} else if(a[i].match(/[\+\-]/) && (!a[i-1] || s[i - 1])) {
-					s[i] = op['+x'];
+					s[i] = op['+x'] + load;;
 				} else {
 					s[i] = op[k] + load;
 				}
@@ -584,7 +584,7 @@ if (__ssjs__) {
 					s[i] = load;
 				// 正负数
 				} else if(a[i].match(/[\+\-]/) && (!a[i-1] || s[i - 1])) {
-					s[i] = op['+x'];
+					s[i] = op['+x'] + load;;
 				}
 			}
 		}
