@@ -15,7 +15,7 @@ Ursa-js
 
 1，is 和 in 语法的支持不够用，存在一些语法上的限制和bug，由于js本身对is 和 in 并不支持或者支持的不好，因此在使用这两个operator时必须简单，并且符合某种规范，如下：
 
-   a is funcType ? "yes" : "no" - 三元运算，funcType后面一定要跟一个空格，作为funcType的结束表示符，另外funcType内不能包含空格，以上要求同样适用于in
+   禁用三元操作符：a is funcType ? "yes" : "no" - 三元运算，funcType后面一定要跟一个空格，作为funcType的结束表示符，另外funcType内不能包含空格，以上要求同样适用于in
    
 
 2，输出语句对过滤器的支持不够，限制了一个输出语句内只能对一个参数或者语句执行filter操作，例如：
@@ -134,7 +134,7 @@ Ursa-js
    
    starter + statementStarter statement statementEnder + ender - 语句
 
-
+###9, 在非语句内，一律将\当成字符串常量，因此如果需要输出语法界定符，只能通过语句来实现，比如 '{{'}},而不能通过{{}}，在语句内，\则充当正常的转义关键词
 
 
 
