@@ -7,20 +7,24 @@
 <body>
     <h1 class="qunit-header">Ursa Template Test</h1>
     <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
-        {%if list%}
+		{% set b2 = '2' %}
+        {%if list is defined and list is int%}
             nihao
         {%else%}
             nihao
+			{{b2}}
         {%endif%}
     </textarea>
     <div id="res"></div>
-    <script src="./Ursa.js"></script>
+    <script src="./Ursa-powerfull.js"></script>
     <script src="./Ursa-jsp.js"></script>
     <script>
         // only compile
         var test = Ursa.parse(document.getElementById('t2').value, 'test');
+		
+		test2 = test.result.join('');
         
-        document.getElementById('res').innerHTML = test.replace(/<|>/g, function(r) {
+        document.getElementById('res').innerHTML = test2.replace(/<|>/g, function(r) {
                 if(r == '>') return '&gt;';
                 return '&lt;';
             });

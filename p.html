@@ -20,7 +20,6 @@
         ni hao 2
         {% endblock %}
     </textarea>
-    <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
 		{% extends 't2' %}
         nihao ershi
         {% if _name is defined or 2 in range(20,1)|sort(1,2,3 ** 4)|sort%}
@@ -34,8 +33,17 @@
         aa, {{gun}} 3 ** 4 = {{3 ** 4}} {{3 is divisibleby 3}} {{"a" in "abcd"}}
         {% include 't24' %}
         {% endblock %}
-		#}
 		{{"hello, Mr %he%, my name is %me%. I\'m %age% years old."|replace({"%he%":"Smith","%me%":2,"%age%": 23})}}
+    <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
+		{%set data=['news','kan','mai','xyx','xs','caipiao','xh']%}
+		{%for i in data%}
+			.{{i}}-md-add,.{{i}}-add-dis:hover{
+				background-position:2px {{3-75*loop.index0}}px;
+			}
+			.{{i}}-add-dis{
+				background-position:2px {{-34-75*loop.index0}}px;
+			}
+		{%endfor%}
     </textarea>
     <div id="res"></div>
     <script>
@@ -49,7 +57,7 @@
         //var test2 = Ursa.render('test2',{names:[1,2,3]},document.getElementById('t2').value);
         var test22 = Ursa.render('test22',{names:[window.b2,2,3]},document.getElementById('t22').value);
         //document.getElementById('res').innerHTML = ('<pre>' + test2 + '</pre>');
-        document.getElementById('res').innerHTML = ('<pre>' + test22 + '</pre>');
+        document.getElementById('res').innerHTML = ('<pre>' + test22 + '</pre>').replace(/[\s]{4,}/g,'');
     </script>
 </body>
 </html>

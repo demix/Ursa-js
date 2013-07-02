@@ -3,15 +3,14 @@
 <head>
     <title>Ursa Template Test</title>  
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <script src="Ursa.js"></script>
+    <script src="Ursa-new.js"></script>
 </head>
 <body>
     <h1 class="qunit-header">Ursa Template Test</h1>
+    <script src="http://10.13.202.231:8081/target/target-script-min.js#anonymous"></script>
     <textarea type="text/tpl" id="t2" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
-{%set a = []%}
-{%a[0]=1%}
-{%a[1]=1%}
-{{a|join('-')}}
+    {% if i % 5 %}
+    {% endif %}
     </textarea>
     <textarea type="text/tpl" id="t22" style="border:1px solid #ccc;padding:10px;width:90%;height:200px;">
 {{'<h2>this is raw[means escape(\'none\')]</h2>'|raw}}
@@ -127,10 +126,12 @@
         }
         
         // re compile and render
-        var test2 = Ursa.render('test2',{names:[1,2,3]},document.getElementById('t2').value);
+        /*
+        var test2 = Ursa.render('test2',{names:[1,2,3],list:[]},document.getElementById('t2').value);
         var test22 = Ursa.render('test22',{names:[window.b2,2,3]},document.getElementById('t22').value);
         document.getElementById('res').innerHTML = ('<pre>' + test2 + '</pre>');
         document.getElementById('res').innerHTML = ('<pre>' + test22 + '</pre>');
+        */
     </script>
 </body>
 </html>

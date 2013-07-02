@@ -15,11 +15,11 @@
      */
     // 输出语句编译产物，转换成目标语言的输出逻辑，例如php的可能就是： {{vars}} => <?php echo $vars;?>
     Ursa.ioOutput = function(ins) {
-        return ins;
+        return '<%=' + ins + '>';
     };
     // 不包含tag的语句编译产物，转换成目标语言的表达式逻辑，例如: {%vars=2%} => <?php $vars=2;?>
     Ursa.ioOP = function(ins) {
-        return '';
+        return '<%=' + ins + '>';
     };
     // 可以抽离的出来的表达式替换逻辑，将模板语法表达式转换为目标语言的表达式，其复杂程度由支持的语法数量决定
     function compileOp(obj) {
@@ -41,5 +41,7 @@
             return (flag ? '' : '</c:when>') + (flag ? '</c:otherwise>': '') + '</c:choose>';    
         } else if(matches == 'else') {
             return '</c:when><c:otherwise>';    
-        }
+        } else if(matches == 'set') {
+			return '';
+		}
     };
