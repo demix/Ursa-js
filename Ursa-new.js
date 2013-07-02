@@ -783,9 +783,11 @@ if (__ssjs__) {
 							})    
 							*/
 						} 
-						type = false;
-						stack = '';
-						continue;
+						if(1) {
+							type = false;
+							stack = '';
+							continue;
+						}
 					} else if(character.match(endStartReg)){
 						pointer --;
 						stack += endType;
