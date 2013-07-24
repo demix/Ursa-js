@@ -43,7 +43,9 @@ if (__ssjs__) {
 		, opStarter = config.opStarter
 		, opEnder = config.opEnder
 		, statementStarter = config.statementStarter
-		, statementEnder   = config.statementEnder;
+		, statementEnder   = config.statementEnder
+		, endStartReg = new RegExp('[' + opEnder + commentEnder + statementEnder + ']', 'g');
+		
 	};
     // filter and func area begin
 

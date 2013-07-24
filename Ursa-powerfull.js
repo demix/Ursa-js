@@ -443,9 +443,12 @@ if (__ssjs__) {
 		'set': {
 			'validate': /set[\s]+[^\s]+/g,
 			'pfixFunc': function(obj) {
-				var statement = obj.statement;
-				var tests = compileOperator(statement);
-				return 'var ' + tests;
+				var statement = obj.statement
+                        , pos = statement.indexOf('=')
+                        , variable = statement.substring(0, pos)
+                        , stat = statement.substr(pos + 1);
+				var tests = compileOperator(stat);
+				return 'var ' + variable + '=' + tests;
 			},
 			'sfix': ';' 
 		},
@@ -864,9 +867,11 @@ if (__ssjs__) {
 							})    
 							*/
 						} 
-						type = false;
-						stack = '';
-						continue;
+						if(1) {
+							type = false;
+							stack = '';
+							continue;
+						}
 					// }%} }}}
 					} else if(character.match(endStartReg)){
 						pointer --;
